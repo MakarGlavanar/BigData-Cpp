@@ -47,10 +47,10 @@ int main(int argc, char** argv) {
     ifstream file(fileName);
 
     if (!file.good()) {
-        cout << "Error in opening file. Check if filename is correct." << endl;
+        cout << "Error opening file. Check if filename is correct." << endl;
         return 0;
     }
-    cout << "File opening success. Searching now..." << endl;
+    cout << "Successfully opened file. Searching now..." << endl;
 
     char *buffer;
     char *previousChunk;
@@ -100,6 +100,6 @@ int main(int argc, char** argv) {
         delete previousChunk;
 
     if (!searchSuccess)
-        cout << "Search is done. Mullikens are not found. Check file content manually." << endl;
+        cout << "Search complete. Mullikens not found. Check file content manually." << endl;
     return 0;
 }
