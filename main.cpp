@@ -3,22 +3,13 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include "file_reader.hpp"
 
 using namespace std;
 
 const size_t chunkSize = 1024; // Предварительное оглашение чанка
 const string outputFilename = "MULLIKEN_CHARGES.log"; // Название файла вывода
 bool searchSuccess = false; // Булеан, проверяющий код на завершение с успехом
-
-string bufferToString(char *buffer) // Функция, переводящая чанк в строчный формат
-{
-    string shit = "";
-    for (int i = 0; i < chunkSize; i++)
-    {
-        shit += buffer[i];
-    }
-    return shit;
-}
 
 string getTableRowData(string buffer, int rowIndex)
 {
@@ -37,22 +28,6 @@ string getTableRowData(string buffer, int rowIndex)
         }
     }
     return resultString;
-}
-
-void writeToFile(string fileName, string buffer)
-{
-    ofstream file(fileName);
-    file << buffer;
-    file.close();
-}
-
-string readBufferFromFile(ifstream *file)
-{
-    char *buffer = new char[chunkSize];
-    file -> read(buffer, chunkSize);
-    string stringifiedBuffer = bufferToString(buffer);
-    delete[] buffer;
-    return stringifiedBuffer;
 }
 
 int main(int argc, char **argv)
@@ -76,7 +51,7 @@ int main(int argc, char **argv)
 
     while (file)
     {
-        buffer = readBufferFromFile(&file);
+        buffer = readStringFromFile(&file, chunkSize);
         if (!previousBuffer.empty()) 
         {
             string concatinatedBuffer = previousBuffer + buffer;
@@ -87,14 +62,14 @@ int main(int argc, char **argv)
 
                 while (file)
                 {
-                    buffer = readBufferFromFile(&file);
+                    buffer = readStringFromFile(&file, chunkSize);
 
                     size_t endOfDataIndex = buffer.find(tableEndExpression); 
                     if (endOfDataIndex != -1)
                     {
                         concatinatedBuffer += buffer.substr(0, endOfDataIndex); 
                         string rowData = getTableRowData(concatinatedBuffer, 2); 
-                        writeToFile(outputFilename, rowData); 
+                        // writeStringToFile(, rowData); 
                         cout << "Search is done. File " + outputFilename + " is generated. " << endl;
                         searchSuccess = true;
                         break;
