@@ -20,17 +20,17 @@ string bufferToString(char *buffer) // Функция, переводящая ч
     return shit;
 }
 
-string getTableRowData(string buffer, int rowIndex) // Функция, получающая значение третьего ряда значений
+string getTableRowData(string buffer, int rowIndex)
 {
-    stringstream ss(buffer); // Подача буфера в поток
+    stringstream ss(buffer);
     string line;
     string resultString = "";
-    while (getline(ss, line, '\n')) // Перебор всех строк
+    while (getline(ss, line, '\n'))
     {
-        istringstream iss(line); // Подача текущей строки в поток
-        vector<string> rows((istream_iterator<string>(iss)), istream_iterator<string>()); // Подача количества рядов в вектор для дальнейшего обращения
+        istringstream iss(line);
+        vector<string> rows((istream_iterator<string>(iss)), istream_iterator<string>());
         int k = 0;
-        for (auto i = rows.begin(); i != rows.end(); ++i, ++k) // Выбор нужного ряда и запись его в файл
+        for (auto i = rows.begin(); i != rows.end(); ++i, ++k)
         {
             if (k == rowIndex) 
                 resultString += *i + "\n";
@@ -39,14 +39,14 @@ string getTableRowData(string buffer, int rowIndex) // Функция, полу�
     return resultString;
 }
 
-void writeToFile(string fileName, string buffer) // Запись текущего буфера в файл
+void writeToFile(string fileName, string buffer)
 {
     ofstream file(fileName);
     file << buffer;
     file.close();
 }
 
-string readBufferFromFile(ifstream *file) // Чтение текущего буфера из файла
+string readBufferFromFile(ifstream *file)
 {
     char *buffer = new char[chunkSize];
     file -> read(buffer, chunkSize);
@@ -69,57 +69,48 @@ int main(int argc, char **argv)
     }
     cout << "Successfully opened file. Searching now..." << endl;
 
-    char *buffer;
-    char *previousChunk;
+    string tableStartExpression = "Mulliken charges and spin densities:";
+    string tableEndExpression = "Sum of Mulliken charges";
+    string buffer = "";
+    string previousBuffer = "";
 
     while (file)
     {
-        buffer = new char[chunkSize]; // Создание буфера
-        file.read(buffer, chunkSize); // Чтение первого чанка из файла и добавление в буфер
-        // ---Основной функционал---
-        if (previousChunk != NULL) 
+        buffer = readBufferFromFile(&file);
+        if (!previousBuffer.empty()) 
         {
-            string concatinatedBuffer = bufferToString(previousChunk) + bufferToString(buffer);
-            size_t index = concatinatedBuffer.find("Mulliken charges and spin densities:"); // Длина строки - 36
-            if (index != -1) // Если найдена нужная строка
+            string concatinatedBuffer = previousBuffer + buffer;
+            size_t index = concatinatedBuffer.find(tableStartExpression);
+            if (index != -1)
             {
-                delete buffer; // Чистка памяти
-                concatinatedBuffer = concatinatedBuffer.substr(index + 36); // Получение нужных данных из общего буффера
+                concatinatedBuffer = concatinatedBuffer.substr(index + tableStartExpression.length());
 
-                while (file) // До конца файла или нахождения нужной строки
+                while (file)
                 {
-                    string stringifiedBuffer = readBufferFromFile(&file); // чтение буфера и перевод в строку
+                    buffer = readBufferFromFile(&file);
 
-                    size_t endOfDataIndex = stringifiedBuffer.find("Sum of Mulliken charges"); // Строка-индикатор конца таблицы
+                    size_t endOfDataIndex = buffer.find(tableEndExpression); 
                     if (endOfDataIndex != -1)
                     {
-                        concatinatedBuffer += stringifiedBuffer.substr(0, endOfDataIndex);  // Чтение таблицы
-                        string rowData = getTableRowData(concatinatedBuffer, 2); // Получение третьего ряда
-                        writeToFile(outputFilename, rowData); // Запись в файл
-                        cout << "Search is done. File " + outputFilename + " is generated. " << endl; // Конец
+                        concatinatedBuffer += buffer.substr(0, endOfDataIndex); 
+                        string rowData = getTableRowData(concatinatedBuffer, 2); 
+                        writeToFile(outputFilename, rowData); 
+                        cout << "Search is done. File " + outputFilename + " is generated. " << endl;
                         searchSuccess = true;
                         break;
                     }
                     else
                     {
-                        concatinatedBuffer += stringifiedBuffer; // Добавление строки в общий буфер
+                        concatinatedBuffer += buffer;
                     }
                 }
                 break;
             }
-
-            delete previousChunk; // Чистка памяти
         }
-
-        previousChunk = buffer; // Присвоение предыдущему чанку значение буфера
+        previousBuffer = buffer;
     }
-
-    file.close(); // Закрытие файла
-
-    if (previousChunk) // Если предыдущий чанк пуст, чистим память
-        delete previousChunk;
-
-    if (!searchSuccess) // Выброс ошибки в случае ошибки программы или файлы
+    file.close();
+    if (!searchSuccess)
         cout << "Search complete. Mullikens not found. Check file content manually." << endl;
     return 0;
 }
