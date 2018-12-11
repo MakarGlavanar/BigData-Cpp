@@ -3,6 +3,8 @@
 
 #include <string>
 #include <fstream>
+#include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -17,8 +19,8 @@ public:
 
 private:
     size_t columnsCount;
-    string *columns;
+    string* columns;
     ofstream file;
-}  
+}; 
 
 #endif

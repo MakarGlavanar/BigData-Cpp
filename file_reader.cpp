@@ -1,4 +1,4 @@
-#include "file_reader.hpp";
+#include "file_reader.hpp"
 
 string bufferToString(char *buffer, size_t chunkSize)
 {

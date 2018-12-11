@@ -4,35 +4,31 @@
 #include <sstream>
 #include <vector>
 #include "file_reader.hpp"
+#include "csv.hpp"
 
 using namespace std;
 
-const size_t chunkSize = 1024; // Предварительное оглашение чанка
-const string outputFilename = "MULLIKEN_CHARGES.log"; // Название файла вывода
-bool searchSuccess = false; // Булеан, проверяющий код на завершение с успехом
+const size_t chunkSize = 1024;
+bool searchSuccess = false;
 
-string getTableRowData(string buffer, int rowIndex)
+vector<vector<string>> getTableData(string buffer, int rowIndex)
 {
     stringstream ss(buffer);
     string line;
-    string resultString = "";
+    vector<vector<string>> table;
     while (getline(ss, line, '\n'))
     {
         istringstream iss(line);
-        vector<string> rows((istream_iterator<string>(iss)), istream_iterator<string>());
-        int k = 0;
-        for (auto i = rows.begin(); i != rows.end(); ++i, ++k)
-        {
-            if (k == rowIndex) 
-                resultString += *i + "\n";
-        }
+        vector<string> columns((istream_iterator<string>(iss)), istream_iterator<string>());
+        table.push_back(columns);
     }
-    return resultString;
+    return table;
 }
 
 int main(int argc, char **argv)
 {
     string fileName(argv[1]);
+    string outputFileName(argv[2]);
     cout << "Opening " + fileName + "..." << endl;
 
     ifstream file(fileName);
@@ -68,9 +64,20 @@ int main(int argc, char **argv)
                     if (endOfDataIndex != -1)
                     {
                         concatinatedBuffer += buffer.substr(0, endOfDataIndex); 
-                        string rowData = getTableRowData(concatinatedBuffer, 2); 
-                        // writeStringToFile(, rowData); 
-                        cout << "Search is done. File " + outputFilename + " is generated. " << endl;
+                        auto tableData = getTableData(concatinatedBuffer, 2); 
+                        string columns[] = { "Index", "Atom", "Spin1", "Spin2" };
+                        CSVFile output(outputFileName, 4, columns);
+                        auto row = tableData.begin(); ++(++row);
+                        for (; row != tableData.end(); ++row) {
+                            string *values = new string[(*row).size()];
+                            int index = 0;
+                            for (auto value = (*row).begin(); value != (*row).end(); ++value, ++index) {
+                                values[index] = (*value);
+                            }
+                            output.writeRow(values);
+                        }
+                        output.closeCsv();
+                        cout << "Search is done. File " + outputFileName + " is generated. " << endl;
                         searchSuccess = true;
                         break;
                     }
