@@ -9,7 +9,7 @@ CSVFile::CSVFile(string fileName, size_t columnsCount, string columns[]) {
         for (size_t i = 0; i < columnsCount - 1; i++) {
             this -> file << columns[i] + ",";
         }
-        this -> file << columns[columnsCount - 1];
+        this -> file << columns[columnsCount - 1] + "\n";
     }
 }
 

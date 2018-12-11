@@ -29,6 +29,7 @@ int main(int argc, char **argv)
 {
     string fileName(argv[1]);
     string outputFileName(argv[2]);
+    outputFileName += ".csv";
     cout << "Opening " + fileName + "..." << endl;
 
     ifstream file(fileName);
@@ -68,7 +69,8 @@ int main(int argc, char **argv)
                         string columns[] = { "Index", "Atom", "Spin1", "Spin2" };
                         CSVFile output(outputFileName, 4, columns);
                         auto row = tableData.begin(); ++(++row);
-                        for (; row != tableData.end(); ++row) {
+                        auto end = tableData.end(); --end;
+                        for (; row != end; ++row) {
                             string *values = new string[(*row).size()];
                             int index = 0;
                             for (auto value = (*row).begin(); value != (*row).end(); ++value, ++index) {
