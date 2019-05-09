@@ -2,4 +2,5 @@
 /.vscode/
 a.out
 /*.o
-MULLIKEN_CHARGES.log
+/*.log
+/*.csv
